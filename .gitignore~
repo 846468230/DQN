@@ -2,4 +2,3 @@
 __pycache__/
 logs/
 models_weights_logs/
-*.DS_Store

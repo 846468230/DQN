@@ -27,7 +27,6 @@ class Single_virtual(gym.Env):
         print('close')
 
 
-    def
 
 
     # get the throughput of different accelerator
