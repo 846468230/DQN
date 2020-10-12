@@ -1,6 +1,8 @@
+import os
 from enum import Enum
 from .Accelerator import CPUConfig, CPU
-
+from gym.envs.custom.utils.csvtools import SaveCSV
+from gym.envs.custom.utils.config import LOG_BASE
 
 class MachineConfig(object):
     idx = 0
@@ -12,7 +14,6 @@ class MachineConfig(object):
         self.disk_capacity = disk_capacity
         self.memory = memory_capacity if memory is None else memory
         self.disk = disk_capacity if disk is None else disk
-
         self.id = MachineConfig.idx
         MachineConfig.idx += 1
 
@@ -24,7 +25,7 @@ class MachineDoor(Enum):
 
 
 class Machine(object):
-    def __init__(self,env, machine_config):
+    def __init__(self, env, machine_config):
         self.id = machine_config.id
         self.env = env
         self.accelerators = []
@@ -38,6 +39,7 @@ class Machine(object):
         self.task_instances = []
         self.tasks = []
         self.machine_door = MachineDoor.NULL
+        self.csv_saver = SaveCSV(self.state, os.path.join(LOG_BASE, "Machine-" + str(self.id) + ".csv"))
 
     def register_accelerator(self, configs):
         for config in configs:
@@ -53,6 +55,20 @@ class Machine(object):
         self.memory_capacity += task_instance.memory
         self.disk_capacity += task_instance.disk
 
+    def accelerators_power_consumption(self, accelerator_class):
+        sum_power_consumption = 0
+        for accelerator in self.accelerators:
+            if isinstance(accelerator, accelerator_class):
+                sum_power_consumption += accelerator.power_consumption
+        return sum_power_consumption
+
+    def accelerators_throughput(self, accelerator_class):
+        sum_throughput = 0
+        for accelerator in self.accelerators:
+            if isinstance(accelerator, accelerator_class):
+                sum_throughput += accelerator.throughput
+        return sum_throughput
+
     @property
     def free_accelerators(self):
         free_accelerators = []
@@ -61,7 +77,7 @@ class Machine(object):
                 free_accelerators.append(accelerator)
         return free_accelerators
 
-    def add_task(self,task):
+    def add_task(self, task):
         self.tasks.append(task)
         for task_instance in task.task_instances:
             self.task_instances.append(task_instance)
@@ -105,29 +121,24 @@ class Machine(object):
     def accommodate(self, task):
         pass
 
-    @property
-    def feature(self):
-        return [self.cpu, self.gpu, self.fpga, self.mlu, self.memory, self.disk]
-
-    @property
-    def capacity(self):
-        return [self.cpu_capacity, self.gpu_capacity, self.fpga_capacity, self.mlu_capacity, self.memory_capacity,
-                self.disk_capacity]
+    # @property
+    # def feature(self):
+    #     return [self.cpu, self.gpu, self.fpga, self.mlu, self.memory, self.disk]
+    #
+    # @property
+    # def capacity(self):
+    #     return [self.cpu_capacity, self.gpu_capacity, self.fpga_capacity, self.mlu_capacity, self.memory_capacity,
+    #             self.disk_capacity]
 
     @property
     def state(self):
         return {
             'id': self.id,
-            'cpu_capacity': self.cpu_capacity,
-            'gpu_capacity': self.gpu_capacity,
-            'fpga_capacity': self.fpga_capacity,
-            'mlu_capacity': self.mlu_capacity,
+            'clock':self.env.now,
+            'cpus_power_consumption': self.accelerators_power_consumption(CPU),
+            'cpus_throughput': self.accelerators_throughput(CPU),
             'memory_capacity': self.memory_capacity,
             'disk_capacity': self.disk_capacity,
-            'cpu': self.cpu,
-            'gpu': self.gpu,
-            'fpga': self.fpga,
-            'mlu': self.mlu,
             'memory': self.memory,
             'disk': self.disk,
             'running_task_instances': len(self.running_task_instances),

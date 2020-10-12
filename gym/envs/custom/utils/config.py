@@ -1,3 +1,16 @@
+import json
+import os
+import sys
+import csv
+from datetime import datetime
+
+output_logs = True
+path_base = 'C:\\Users\\dao\\PycharmProjects\\DQN'  # sys.path[0]
+os.chmod(path_base,0o666)
+LOG_BASE = os.path.join(path_base, "simulation_logs", datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+if not os.path.exists(LOG_BASE):
+    os.makedirs(LOG_BASE)
+
 
 class TaskInstanceConfig(object):
     def __init__(self,instance_index,cpu_cache,cpu_power_consumption,cpu_runtime,cpu_throughput,memory,disk,duration,parent_indices=None):

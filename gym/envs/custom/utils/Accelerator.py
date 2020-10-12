@@ -1,4 +1,8 @@
 from random import randint
+from gym.envs.custom.utils.csvtools import SaveCSV
+from gym.envs.custom.utils.config import LOG_BASE,output_logs
+import os
+
 
 
 class CPUConfig(object):
@@ -16,6 +20,7 @@ class CPUConfig(object):
 
 class CPU(object):
     name = "CPU"
+
     def __init__(self, cpu_config, env, *args, **kwargs):
         self.id = cpu_config.id
         self.speed = cpu_config.speed
@@ -30,6 +35,7 @@ class CPU(object):
         self.machine = None
         self.running_task_instance = None
         self.free = env.event()
+        self.csv_saver = SaveCSV(self.state, os.path.join(LOG_BASE, CPU.name + "-" + str(self.id) + ".csv"))
 
     def attach(self, machine):
         self.machine = machine
@@ -50,13 +56,19 @@ class CPU(object):
 
     def do_work(self, runtime):
         self.process_in()
-        print(self.state, self.env.now)
         self.running_task_instance.started = True
         self.running_task_instance.started_timestamp = self.env.now
+        if output_logs:
+            self.csv_saver.save(self.state)
+        else:
+            print(self.state, self.env.now)
         yield self.env.timeout(runtime)
         self.running_task_instance.finished = True
         self.running_task_instance.finished_timestamp = self.env.now
-        print(self.state, self.env.now)
+        if output_logs:
+            self.csv_saver.save(self.state)
+        else:
+            print(self.state, self.env.now)
         self.process_out()
         self.free.succeed()
         self.free = self.env.event()
@@ -75,13 +87,13 @@ class CPU(object):
     def caculate_runtime(self):
         return randint(0, 180)
 
-    def accommodate(self,task_instance):
+    def accommodate(self, task_instance):
         return self.cache > task_instance.cpu_cache
 
     @property
     def state(self):
         return {
-            'id': CPU.name+"-"+str(self.id),
+            'id': CPU.name + "-" + str(self.id),
             'speed': self.speed,
             'frequency': self.frequency,
             'cache': self.cache,
@@ -106,18 +118,20 @@ if __name__ == "__main__":
     from simpy import Environment
     from simpy.core import EmptySchedule
     from simpy.rt import RealtimeEnvironment
-    from gym.envs.custom.utils.job import TaskInstance,Task
+    from gym.envs.custom.utils.job import TaskInstance, Task
     from gym.envs.custom.utils.config import TaskInstanceConfig, TaskConfig
     from collections import deque
+    from gym.envs.custom.utils.csvtools import LOG_BASE
 
+    # print(LOG_BASE)
     cpu_config = CPUConfig(speed=1, frequency=2.3e9, cache=4e6, power_consumption=65, runtime=None)
     env = RealtimeEnvironment(factor=0.01, strict=False)
     cpu = CPU(cpu_config, env, capacity=1)
     task = deque([])
     taskconfigs = []
     for i in range(10):
-        taskconfigs.append([i, 3000000, 20,None,70, 10000, 10000, None])
-    taskconfig = TaskConfig(1,0,taskconfigs)
-    onetask = Task(env,taskconfig)
+        taskconfigs.append([i, 3000000, 20, None, 70, 10000, 10000, None])
+    taskconfig = TaskConfig(1, 0, taskconfigs)
+    onetask = Task(env, taskconfig)
     env.process(schedule(env, deque(onetask.task_instances), cpu))
     env.run()

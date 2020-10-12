@@ -4,13 +4,12 @@ from gym.envs.custom.utils.scheduler import Scheduler
 from gym.envs.custom.utils.broker import Broker
 from gym.envs.custom.utils.simulation import Simulation
 
-
 class Episode(object):
     broker_cls = Broker
 
     def __init__(self, machine_configs, task_configs, algorithm, event_file):
-        self.env = simpy.Environment() #simpy.rt.RealtimeEnvironment(factor=0.01, strict=False)
-        machine = Machine(self.env,machine_configs)
+        self.env = simpy.Environment()  # simpy.rt.RealtimeEnvironment(factor=0.01, strict=False)
+        machine = Machine(self.env, machine_configs)
 
         task_broker = Episode.broker_cls(self.env, task_configs)
 
@@ -26,9 +25,11 @@ class Episode(object):
 if __name__ == "__main__":
     from gym.envs.custom.utils.alogrithm import Algorithm
     from gym.envs.custom.utils.config import TaskConfig
-    from gym.envs.custom.utils.machine import Machine,MachineConfig
+    from gym.envs.custom.utils.machine import Machine, MachineConfig
     from gym.envs.custom.utils.Accelerator import CPUConfig
     from random import randint
+
+
     class FirstFitAlgorithm(Algorithm):
         def __call__(self, machine, clock):
             accelerators = machine.free_accelerators
@@ -44,20 +45,18 @@ if __name__ == "__main__":
                         break
             return candidate_accelerator, candidate_task
 
+
     cpu_configs = []
     for i in range(3):
         cpu_configs.append(CPUConfig(speed=1, frequency=2.3e9, cache=4e6, power_consumption=65, runtime=None))
 
-    machine_config = MachineConfig(cpu_configs,4000000000,512000000000)
+    machine_config = MachineConfig(cpu_configs, 4000000000, 512000000000)
     taskconfigs = []
     for j in range(5):
         task_instance_configs = []
         for i in range(10):
             task_instance_configs.append([i, 3000000, 20, None, 70, 10000, 10000, None])
-        taskconfigs.append(TaskConfig(j, j*randint(1,50), task_instance_configs))
+        taskconfigs.append(TaskConfig(j, j * randint(1, 50), task_instance_configs))
 
-    episode = Episode(machine_config,taskconfigs,FirstFitAlgorithm(),None)
+    episode = Episode(machine_config, taskconfigs, FirstFitAlgorithm(), None)
     episode.run()
-
-
-
