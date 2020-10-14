@@ -1,8 +1,8 @@
 from random import randint
-from gym.envs.custom.utils.csvtools import SaveCSV
-from gym.envs.custom.utils.config import LOG_BASE,output_logs
+from simulations.csvtools import SaveCSV
+from simulations.config import output_logs
 import os
-
+from simulations.config import LOG_BASE
 
 
 class CPUConfig(object):
@@ -115,13 +115,11 @@ def schedule(env, task, cpu):
 
 
 if __name__ == "__main__":
-    from simpy import Environment
-    from simpy.core import EmptySchedule
     from simpy.rt import RealtimeEnvironment
-    from gym.envs.custom.utils.job import TaskInstance, Task
-    from gym.envs.custom.utils.config import TaskInstanceConfig, TaskConfig
+    from simulations.job import Task
+    from simulations.config import TaskConfig
     from collections import deque
-    from gym.envs.custom.utils.csvtools import LOG_BASE
+    from simulations.config import LOG_BASE
 
     # print(LOG_BASE)
     cpu_config = CPUConfig(speed=1, frequency=2.3e9, cache=4e6, power_consumption=65, runtime=None)

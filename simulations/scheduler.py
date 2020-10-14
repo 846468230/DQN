@@ -1,4 +1,4 @@
-from gym.envs.custom.utils.config import output_logs
+from simulations.config import output_logs
 class Scheduler(object):
     def __init__(self, env, algorithm):
         self.env = env

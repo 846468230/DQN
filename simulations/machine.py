@@ -1,8 +1,8 @@
 import os
 from enum import Enum
 from .Accelerator import CPUConfig, CPU
-from gym.envs.custom.utils.csvtools import SaveCSV
-from gym.envs.custom.utils.config import LOG_BASE
+from simulations.csvtools import SaveCSV
+from simulations.config import LOG_BASE
 
 class MachineConfig(object):
     idx = 0

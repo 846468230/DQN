@@ -1,4 +1,4 @@
-from .monitor import Monitor
+from simulations.monitor import Monitor
 
 
 class Simulation(object):

@@ -1,8 +1,7 @@
 import simpy
-from gym.envs.custom.utils.machine import Machine
-from gym.envs.custom.utils.scheduler import Scheduler
-from gym.envs.custom.utils.broker import Broker
-from gym.envs.custom.utils.simulation import Simulation
+from simulations.scheduler import Scheduler
+from simulations.broker import Broker
+from simulations.simulation import Simulation
 
 class Episode(object):
     broker_cls = Broker
@@ -23,10 +22,10 @@ class Episode(object):
 
 
 if __name__ == "__main__":
-    from gym.envs.custom.utils.alogrithm import Algorithm
-    from gym.envs.custom.utils.config import TaskConfig
-    from gym.envs.custom.utils.machine import Machine, MachineConfig
-    from gym.envs.custom.utils.Accelerator import CPUConfig
+    from simulations.alogrithm import Algorithm
+    from simulations.config import TaskConfig
+    from simulations.machine import Machine, MachineConfig
+    from simulations.Accelerator import CPUConfig
     from random import randint
 
 
