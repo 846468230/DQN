@@ -88,12 +88,33 @@ class TaskInstance(object):
         self.task = task
         self.task_instance_index = task_instance_index
         self.config = task_instance_config
+
         self.cpu_cache = task_instance_config.cpu_cache
         self.cpu_power_consumption = task_instance_config.cpu_power_consumption
         self.cpu_throughput = task_instance_config.cpu_throughput
-        self.memory = task_instance_config.memory
-        self.disk = task_instance_config.disk
-        self.duration = task_instance_config.duration
+        self.cpu_runtime = task_instance_config.cpu_runtime
+
+        self.gpu_power_consumption = task_instance_config.gpu_power_consumption
+        self.gpu_throughput = task_instance_config.gpu_throughput
+        self.gpu_usage = task_instance_config.gpu_usage
+        self.gpu_runtime = task_instance_config.gpu_runtime
+
+        self.mlu_power_consumption = task_instance_config.mlu_power_consumption
+        self.mlu_throughput = task_instance_config.mlu_throughput
+        self.mlu_card_usage = task_instance_config.mlu_card_usage
+        self.mlu_temp = task_instance_config.mlu_temp
+        self.mlu_runtime = task_instance_config.mlu_runtime
+
+        self.fpga_power_consumption = task_instance_config.fpga_power_consumption
+        self.fpga_throughput = task_instance_config.fpga_throughput
+        self.fpga_temp = task_instance_config.fpga_temp
+        self.fpga_runtime = task_instance_config.fpga_runtime
+
+        # self.memory = task_instance_config.memory
+        # self.disk = task_instance_config.disk
+        # self.duration = task_instance_config.duration
+        self.dataset_num = task_instance_config.dataset_num
+        self.parent_indices = task_instance_config.parent_indices
 
         self.machine = None
         self.accelerator = None
