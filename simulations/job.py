@@ -89,24 +89,31 @@ class TaskInstance(object):
         self.task_instance_index = task_instance_index
         self.config = task_instance_config
 
-        self.cpu_cache = task_instance_config.cpu_cache
-        self.cpu_power_consumption = task_instance_config.cpu_power_consumption
         self.cpu_throughput = task_instance_config.cpu_throughput
+        self.cpu_average_frequency = task_instance_config.cpu_average_frequency
+        self.cpu_temp = task_instance_config.cpu_temp
+        self.cpu_usage = task_instance_config.cpu_usage
+        self.cpu_power_consumption = task_instance_config.cpu_power_consumption
         self.cpu_runtime = task_instance_config.cpu_runtime
 
-        self.gpu_power_consumption = task_instance_config.gpu_power_consumption
         self.gpu_throughput = task_instance_config.gpu_throughput
+        self.gpu_level = task_instance_config.gpu_level
+        self.gpu_temp = task_instance_config.gpu_temp
+        self.gpu_power_consumption = task_instance_config.gpu_power_consumption
+        self.gpu_memory_usage = task_instance_config.gpu_memory_usage
         self.gpu_usage = task_instance_config.gpu_usage
         self.gpu_runtime = task_instance_config.gpu_runtime
 
-        self.mlu_power_consumption = task_instance_config.mlu_power_consumption
         self.mlu_throughput = task_instance_config.mlu_throughput
-        self.mlu_card_usage = task_instance_config.mlu_card_usage
+        self.mlu_physical_memory_usage = task_instance_config.mlu_physical_memory_usage
+        self.mlu_virtual_memory_usage = task_instance_config.mlu_virtual_memory_usage
         self.mlu_temp = task_instance_config.mlu_temp
+        self.mlu_power_consumption = task_instance_config.mlu_power_consumption
+        self.mlu_card_usage = task_instance_config.mlu_card_usage
         self.mlu_runtime = task_instance_config.mlu_runtime
 
-        self.fpga_power_consumption = task_instance_config.fpga_power_consumption
         self.fpga_throughput = task_instance_config.fpga_throughput
+        self.fpga_power_consumption = task_instance_config.fpga_power_consumption
         self.fpga_temp = task_instance_config.fpga_temp
         self.fpga_runtime = task_instance_config.fpga_runtime
 

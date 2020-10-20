@@ -8,21 +8,34 @@ from simulations.config import LOG_BASE
 class CPUConfig(object):
     idx = 0
 
-    def __init__(self, speed=1, frequency=2.3e9, cache=4e6, power_consumption=65, runtime=None):
+    def __init__(self, speed=1, average_frequency=1141, temp=36, power_consumption=65):
         self.speed = speed
-        self.frequency = frequency
-        self.cache = cache
+        self.average_frequency = average_frequency
+        self.temp = temp
         self.power_consumption = power_consumption
-        self.runtime = runtime
         self.id = CPUConfig.idx
         CPUConfig.idx += 1
+
+
+class GPUConfig(object):
+    idx = 0
+
+    def __init__(self, speed=1, level=8, temp=29, power_consumption=24):
+        self.speed = speed
+        self.level = level
+        self.temp = temp
+        self.power_consumption = power_consumption
+        self.id = GPUConfig.idx
+        GPUConfig.idx += 1
 
 
 class MLUConfig(object):
     idx = 0
 
-    def __init__(self, speed=1, power_consumption=28, temp=31):
+    def __init__(self, speed=1, physical_memory_usage=4192, virtual_memory_usage=16643, temp=31, power_consumption=28):
         self.speed = speed
+        self.physical_memory_usage = physical_memory_usage
+        self.virtual_memory_usage = virtual_memory_usage
         self.power_consumption = power_consumption
         self.temp = temp
         self.id = MLUConfig.idx
@@ -45,9 +58,12 @@ class Accelerator(object):
         self.id = config.id
         self.speed = config.speed
         self.power_consumption = config.power_consumption
-        self.origin_power_consumption = config.power_consumption
+        self.origin_power_consumption = self.power_consumption
+        self.temp = config.temp
+        self.origin_temp = self.temp
         self.throughput = 0
         self.runtime = None
+        self.card_usage = 0
         self.env = env
         self.machine = None
         self.running_task_instance = None
@@ -96,8 +112,6 @@ class FPGA(Accelerator):
     name = "FPGA"
 
     def __init__(self, fpga_config, env):
-        self.temp = fpga_config.temp
-        self.origin_temp = self.temp
         super(FPGA, self).__init__(fpga_config, env)
 
     def run_task_instance(self, task_instance):
@@ -110,59 +124,65 @@ class FPGA(Accelerator):
 
     def process_in(self):
         for i in range(int(self.runtime)):
-            self.power_consumption = self.running_task_instance.fpga_power_consumption[i]
             self.throughput = self.running_task_instance.fpga_throughput[i]
+            self.power_consumption = self.running_task_instance.fpga_power_consumption[i]
             self.temp = self.running_task_instance.fpga_temp[i]
             if output_logs:
                 self.csv_saver.save(self.state)
             yield self.env.timeout(1)
 
     def process_out(self):
-        self.power_consumption = self.origin_power_consumption
         self.throughput = 0
-        self.running_task_instance = None
+        self.power_consumption = self.origin_power_consumption
         self.temp = self.origin_temp
+        self.running_task_instance = None
 
     @property
     def state(self):
         return {
             'id': FPGA.name + "-" + str(self.id),
             'speed': self.speed,
+            'throughput': self.throughput,
             'power_consumption': self.power_consumption,
             'temp': self.temp,
-            'throughput': self.throughput,
             'running_task_instance': self.running_task_instance,
         }
 
     def __eq__(self, other):
-        return isinstance(other, MLU) and other.id == self.id
+        return isinstance(other, FPGA) and other.id == self.id
 
 
 class MLU(Accelerator):
     name = "MLU"
 
     def __init__(self, mlu_config, env):
-        self.card_usage = 0
-        self.temp = mlu_config.temp
-        self.origin_temp = self.temp
+        self.physical_memory_usage = mlu_config.physical_memory_usage
+        self.origin_physical_memory_usage = self.physical_memory_usage
+        self.virtual_memory_usage = mlu_config.virtual_memory_usage
+        self.origin_virtual_memory_usage = self.virtual_memory_usage
         super(MLU, self).__init__(mlu_config, env)
 
     def process_in(self):
         for i in range(int(self.runtime)):
-            self.power_consumption = self.running_task_instance.mlu_power_consumption[i]
             self.throughput = self.running_task_instance.mlu_throughput[i]
-            self.card_usage = self.running_task_instance.mlu_card_usage[i]
+            self.physical_memory_usage = self.running_task_instance.mlu_physical_memory_usage[i]
+            self.virtual_memory_usage = self.running_task_instance.mlu_virtual_memory_usage[i]
             self.temp = self.running_task_instance.mlu_temp[i]
+            self.power_consumption = self.running_task_instance.mlu_power_consumption[i]
+            self.card_usage = self.running_task_instance.mlu_card_usage[i]
+
             if output_logs:
                 self.csv_saver.save(self.state)
             yield self.env.timeout(1)
 
     def process_out(self):
-        self.power_consumption = self.origin_power_consumption
         self.throughput = 0
+        self.physical_memory_usage = self.origin_physical_memory_usage
+        self.virtual_memory_usage = self.origin_virtual_memory_usage
+        self.temp = self.origin_temp
+        self.power_consumption = self.origin_power_consumption
         self.card_usage = 0
         self.running_task_instance = None
-        self.temp = self.origin_temp
 
     def run_task_instance(self, task_instance):
         self.running_task_instance = task_instance
@@ -177,10 +197,12 @@ class MLU(Accelerator):
         return {
             'id': MLU.name + "-" + str(self.id),
             'speed': self.speed,
-            'power_consumption': self.power_consumption,
-            'temp': self.temp,
-            'card_usage': self.card_usage,
             'throughput': self.throughput,
+            'power_consumption': self.power_consumption,
+            'card_usage': self.card_usage,
+            'physical_memory_usage': self.physical_memory_usage,
+            'virtual_memory_usage': self.virtual_memory_usage,
+            'temp': self.temp,
             'running_task_instance': self.running_task_instance,
         }
 
@@ -188,48 +210,90 @@ class MLU(Accelerator):
         return isinstance(other, MLU) and other.id == self.id
 
 
+class GPU(Accelerator):
+    name = "GPU"
+
+    def __init__(self, gpu_config, env):
+        self.level = gpu_config.level
+        self.origin_level = self.level
+        self.memory_usage = 0
+        super(GPU, self).__init__(gpu_config, env)
+
+    def process_in(self):
+        for i in range(int(self.runtime)):
+            self.throughput = self.running_task_instance.gpu_throughput[i]
+            self.level = self.running_task_instance.gpu_level[i]
+            self.temp = self.running_task_instance.gpu_temp[i]
+            self.power_consumption = self.running_task_instance.gpu_power_consumption[i]
+            self.memory_usage = self.running_task_instance.gpu_memory_usage[i]
+            self.card_usage = self.running_task_instance.gpu_usage[i]
+
+            if output_logs:
+                self.csv_saver.save(self.state)
+            yield self.env.timeout(1)
+
+    def process_out(self):
+        self.throughput = 0
+        self.level = self.origin_level
+        self.temp = self.origin_temp
+        self.power_consumption = self.origin_power_consumption
+        self.memory_usage = 0
+        self.card_usage = 0
+        self.running_task_instance = None
+
+    def run_task_instance(self, task_instance):
+        self.running_task_instance = task_instance
+        if hasattr(task_instance, 'gpu_runtime'):
+            self.runtime = task_instance.mlu_runtime
+        else:
+            self.runtime = None
+        yield self.env.process(self.do_work(self.caculate_runtime()))
+
+    @property
+    def state(self):
+        return {
+            'id': GPU.name + "-" + str(self.id),
+            'speed': self.speed,
+            'throughput': self.throughput,
+            'power_consumption': self.power_consumption,
+            'card_usage': self.card_usage,
+            'level': self.level,
+            'memory_usage': self.memory_usage,
+            'temp': self.temp,
+            'running_task_instance': self.running_task_instance,
+        }
+
+    def __eq__(self, other):
+        return isinstance(other, GPU) and other.id == self.id
+
+
 class CPU(Accelerator):
     name = "CPU"
 
     def __init__(self, cpu_config, env):
-        self.name = CPU.name
-        self.frequency = cpu_config.frequency
-        self.cache = cpu_config.cache
-        self.origin_cache = cpu_config.cache
+        self.average_frequency = cpu_config.average_frequency
+        self.origin_average_frequency = self.average_frequency
         super(CPU, self).__init__(cpu_config, env)
 
     def process_in(self):
-        self.cache -= self.running_task_instance.cpu_cache
-        assert self.cache >= 0
-        self.power_consumption += self.running_task_instance.cpu_power_consumption
-        self.throughput = self.running_task_instance.cpu_throughput
+        for i in range(int(self.runtime)):
+            self.throughput = self.running_task_instance.cpu_throughput[i]
+            self.average_frequency = self.running_task_instance.cpu_average_frequency[i]
+            self.temp = self.running_task_instance.cpu_temp[i]
+            self.card_usage = self.running_task_instance.cpu_usage[i]
+            self.power_consumption = self.running_task_instance.cpu_power_consumption[i]
+
+            if output_logs:
+                self.csv_saver.save(self.state)
+            yield self.env.timeout(1)
 
     def process_out(self):
-        self.cache += self.running_task_instance.cpu_cache
-        assert self.cache == self.origin_cache
-        self.power_consumption -= self.running_task_instance.cpu_power_consumption
-        assert self.power_consumption == self.origin_power_consumption
         self.throughput = 0
+        self.average_frequency = self.origin_average_frequency
+        self.temp = self.origin_temp
+        self.card_usage = 0
+        self.power_consumption = self.origin_power_consumption
         self.running_task_instance = None
-
-    def do_work(self, runtime):
-        self.process_in()
-        self.running_task_instance.started = True
-        self.running_task_instance.started_timestamp = self.env.now
-        if output_logs:
-            self.csv_saver.save(self.state)
-        else:
-            print(self.state, self.env.now)
-        yield self.env.timeout(runtime)
-        self.running_task_instance.finished = True
-        self.running_task_instance.finished_timestamp = self.env.now
-        if output_logs:
-            self.csv_saver.save(self.state)
-        else:
-            print(self.state, self.env.now)
-        self.process_out()
-        self.free.succeed()
-        self.free = self.env.event()
 
     def run_task_instance(self, task_instance):
         self.running_task_instance = task_instance
@@ -244,10 +308,11 @@ class CPU(Accelerator):
         return {
             'id': CPU.name + "-" + str(self.id),
             'speed': self.speed,
-            'frequency': self.frequency,
-            'cache': self.cache,
-            'power_consumption': self.power_consumption,
             'throughput': self.throughput,
+            'power_consumption': self.power_consumption,
+            'card_usage':self.card_usage,
+            'average_frequency': self.average_frequency,
+            'temp': self.temp,
             'running_task_instance': self.running_task_instance,
         }
 

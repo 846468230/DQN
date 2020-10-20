@@ -1,10 +1,9 @@
-from simulations.config import TaskConfig,task_types,accelerators,trace_base,path_base,base
+from simulations.config import TaskConfig, task_types, accelerators, trace_base, path_base, base
 from random import randint
 import csv
 import os
 import numpy as np
 from simulations.csvtools import SaveCSV
-
 
 
 def check_it_exits_or_mk(path):
@@ -49,14 +48,14 @@ def generate_trace(task_type, task_num, task_sumbit_upper, out_put_dir):
         writer.save(item)
 
 
-def parse_trace_to_task_instance(item,config_data):
-    cpu_data_index = ["cache_usage", "card_power", "throughput"]
+def parse_trace_to_task_instance(item, config_data):
+    cpu_data_index = ["throughput", 'cpu_ave_fre', 'cpu1_temp', 'cpu_ave_usage', 'cpu1_power']
     cpu_header_index = ["execute_time"]
-    gpu_data_index = ["card_power", "throughput", "card_usage"]
+    gpu_data_index = ["throughput", 'gpu_pref', 'gpu_temp', 'gpu_power', 'gpu_mem_usage', 'gpu_usage']
     gpu_header_index = ["execute_time"]
-    mlu_data_index = ["card_power", "throughput", "card_usage", "card_temp"]
+    mlu_data_index = ["throughput", 'mlu_phy_mem_usage', 'mlu_vir_mem_usage', 'mlu_temp', 'mlu_power', 'mlu_usage']
     mlu_header_index = ["execute_time"]
-    fpga_data_index = ["card_power", "throughput", "card_temp"]
+    fpga_data_index = ["throughput", 'fpga1_power', 'fpga1_temp']
     fpga_header_index = ["execute_time"]
     task_instance_configs = []
     if item["task_type"] == "resnet50":
@@ -73,7 +72,7 @@ def parse_trace_to_task_instance(item,config_data):
     for index in cpu_data_index:
         data = []
         for row in cpu_data["datas"]:
-            data.append(float(row[index]))
+            data.append(round(float(row[index]), 3))
         temp.append(data)
     for index in cpu_header_index:
         temp.append(float(cpu_data["header"][index]))
@@ -85,10 +84,10 @@ def parse_trace_to_task_instance(item,config_data):
         data = []
         if gpu_data:
             for row in gpu_data["datas"]:
-                data.append(float(row[index]))
+                data.append(round(float(row[index]), 3))
             temp.append(data)
         else:
-            temp.append(0.0)              #the shape of this temp is different from obove temp
+            temp.append(0.0)  # the shape of this temp is different from obove temp
     for index in gpu_header_index:
         if gpu_data:
             temp.append(float(gpu_data["header"][index]))
@@ -98,7 +97,7 @@ def parse_trace_to_task_instance(item,config_data):
     for index in mlu_data_index:
         data = []
         for row in mlu_data["datas"]:
-            data.append(float(row[index]))
+            data.append(round(float(row[index]), 3))
         temp.append(data)
     for index in mlu_header_index:
         temp.append(float(mlu_data["header"][index]))
@@ -106,7 +105,7 @@ def parse_trace_to_task_instance(item,config_data):
     for index in fpga_data_index:
         data = []
         for row in fpga_data["datas"]:
-            data.append(float(row[index]))
+            data.append(round(float(row[index]), 3))
         temp.append(data)
     for index in fpga_header_index:
         temp.append(float(fpga_data["header"][index]))
@@ -117,10 +116,6 @@ def parse_trace_to_task_instance(item,config_data):
     return task_instance_configs
 
 
-# def __init__(self, instance_index, cpu_cache, cpu_power_consumption,cpu_throughput, cpu_runtime,
-#                  gpu_power_consumption,gpu_throughput,gpu_usage, gpu_runtime,  mlu_card_power, mlu_throughput,mlu_card_usage, mlu_temp, mlu_runtime,
-#                  fpga_card_power,fpga_throughput,fpga_temp,fpga_runtime, dataset_num
-#                  parent_indices=None):
 def task_generator(trace_path, task_types, accelerators):
     config_data = config_generator(task_types, accelerators)
     task_configs = []
@@ -129,7 +124,7 @@ def task_generator(trace_path, task_types, accelerators):
         spam_reader = list(spam_reader)
     for i in range(len(spam_reader)):
         trace = spam_reader[i]
-        task_instance_configs = parse_trace_to_task_instance(item=trace,config_data=config_data)
+        task_instance_configs = parse_trace_to_task_instance(item=trace, config_data=config_data)
         task = TaskConfig(i, int(trace["submit_time"]), task_instance_configs)
         task_configs.append(task)
     return task_configs
@@ -154,7 +149,7 @@ def config_generator(task_types, accelerators):
             header, datas = task_reader(task_path)
             task_card_data[item] = {'header': header, "datas": datas}
         task_all_data[task_name] = task_card_data
-    #print(task_card_data["fpga"]["header"]["execute_time"])
+    # print(task_card_data["fpga"]["header"]["execute_time"])
     # print(task_card_data["fpga"]["datas"][1]["totol_power"])
     return task_all_data
 
@@ -165,7 +160,7 @@ if __name__ == "__main__":
     task_nums = 1000
     task_submit_upper = 10000
     generate_trace_now = False
-    if generate_trace_now:                    # generate trace files
+    if generate_trace_now:  # generate trace files
         check_it_exits_or_mk(trace_base)
         generate_trace(task_types, task_nums, task_submit_upper,
                        os.path.join(trace_base, "_".join(task_types) + ".csv"))
@@ -179,5 +174,5 @@ if __name__ == "__main__":
     # print(task_resnet50["fpga"]["datas"][1]["totol_power"])
     accelerators = ["fpga", "mlu"]
     # config_generator(task_types, accelerators)
-    tasks = task_generator(os.path.join(trace_base, "_".join(task_types) + ".csv"),task_types,accelerators)
+    tasks = task_generator(os.path.join(trace_base, "_".join(task_types) + ".csv"), task_types, accelerators)
     print(tasks)

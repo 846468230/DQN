@@ -26,7 +26,7 @@ class Episode(object):
 if __name__ == "__main__":
     from simulations.alogrithm import Algorithm
     from simulations.machine import Machine, MachineConfig
-    from simulations.accelerator import CPUConfig,MLUConfig,FPGAConfig
+    from simulations.accelerator import CPUConfig,MLUConfig,FPGAConfig,GPUConfig
     from simulations.task_generator import task_generator
     from simulations.config import task_types,accelerators,trace_base
     import os
@@ -47,15 +47,22 @@ if __name__ == "__main__":
                         break
             return candidate_accelerator, candidate_task
 
-    #
     accelerator_configs = []
-    # for i in range(3):
-    #     cpu_configs.append(CPUConfig(speed=1, frequency=2.3e9, cache=4e6, power_consumption=65, runtime=None))
     mlu = MLUConfig(1,28,31)
     fpga = FPGAConfig(1,46,43)
+    cpu = CPUConfig()
+    gpu = GPUConfig()
     accelerator_configs.append(mlu)
     accelerator_configs.append(fpga)
-    machine_config = MachineConfig(accelerator_configs, 4000000000, 512000000000)
+    accelerator_configs.append(gpu)
+    mlu = MLUConfig(1, 28, 31)
+    fpga = FPGAConfig(1, 46, 43)
+    cpu = CPUConfig()
+    gpu = GPUConfig()
+    accelerator_configs.append(mlu)
+    accelerator_configs.append(fpga)
+    accelerator_configs.append(gpu)
+    machine_config = MachineConfig(accelerator_configs,4046,44712840,220)
     tasks =  task_generator(os.path.join(trace_base, "_".join(task_types) + ".csv"),task_types,accelerators)
     episode = Episode(machine_config, tasks, FirstFitAlgorithm(), None)
     episode.run()

@@ -1,19 +1,18 @@
 import os
 from enum import Enum
-from .accelerator import CPUConfig, CPU,MLUConfig,FPGAConfig,MLU,FPGA
+from .accelerator import CPUConfig, CPU,MLUConfig,FPGAConfig,GPUConfig,MLU,FPGA,GPU
 from simulations.csvtools import SaveCSV
 from simulations.config import LOG_BASE
 
 class MachineConfig(object):
     idx = 0
 
-    def __init__(self, accelerator_configs, memory_capacity, disk_capacity, gpu_capacity=None, fpga_capacity=None,
+    def __init__(self, accelerator_configs, memory_usage , cache_usage,power_base, gpu_capacity=None, fpga_capacity=None,
                  mlu_capacity=None, cpu=None, memory=None, disk=None, gpu=None, fpga=None, mlu=None):
         self.accelerator_configs = accelerator_configs
-        self.memory_capacity = memory_capacity
-        self.disk_capacity = disk_capacity
-        self.memory = memory_capacity if memory is None else memory
-        self.disk = disk_capacity if disk is None else disk
+        self.memory_usage  = memory_usage
+        self.cache_usage = cache_usage
+        self.power = power_base
         self.id = MachineConfig.idx
         MachineConfig.idx += 1
 
@@ -30,11 +29,10 @@ class Machine(object):
         self.env = env
         self.accelerators = []
         self.accelerator_configs = machine_config.accelerator_configs
-        self.memory_capacity = machine_config.memory_capacity
-        self.disk_capacity = machine_config.disk_capacity
         self.register_accelerator(self.accelerator_configs)
-        self.memory = machine_config.memory
-        self.disk = machine_config.disk
+        self.memory_usage = machine_config.memory_usage
+        self.cache_usage = machine_config.cache_usage
+        self.power = machine_config.power
         self.task_instances = []
         self.tasks = []
         self.machine_door = MachineDoor.NULL
@@ -45,6 +43,10 @@ class Machine(object):
             if isinstance(config, CPUConfig):
                 self.accelerators.append(
                     CPU(config, self.env))
+            elif isinstance(config,GPUConfig):
+                self.accelerators.append(
+                    GPU(config,self.env)
+                )
             elif isinstance(config,MLUConfig):
                 self.accelerators.append(MLU(config,self.env))
             elif isinstance(config,FPGAConfig):
@@ -76,7 +78,7 @@ class Machine(object):
         sum_power_consumption = 0
         for accelerator in self.accelerators:
             sum_power_consumption += accelerator.power_consumption
-        return sum_power_consumption
+        return sum_power_consumption + self.power
     @property
     def throughput_total(self):
         sum_throughput = 0
@@ -136,32 +138,23 @@ class Machine(object):
     def accommodate(self, task):
         pass
 
-    # @property
-    # def feature(self):
-    #     return [self.cpu, self.gpu, self.fpga, self.mlu, self.memory, self.disk]
-    #
-    # @property
-    # def capacity(self):
-    #     return [self.cpu_capacity, self.gpu_capacity, self.fpga_capacity, self.mlu_capacity, self.memory_capacity,
-    #             self.disk_capacity]
-
     @property
     def state(self):
         return {
             'id': self.id,
             'clock':self.env.now,
-            # 'cpus_power_consumption': self.accelerators_power_consumption(CPU),
-            # 'cpus_throughput': self.accelerators_throughput(CPU),
+            'cpus_power_consumption': self.accelerators_power_consumption(CPU),
+            'cpus_throughput': self.accelerators_throughput(CPU),
+            'gpus_power_consumption':self.accelerators_power_consumption(GPU),
+            'gpus_throughput':self.accelerators_throughput(GPU),
             'mlus_power_consumption': self.accelerators_power_consumption(MLU),
             'mlus_throughput': self.accelerators_throughput(MLU),
             'fpgas_power_consumption': self.accelerators_power_consumption(FPGA),
             'fpgas_throughput': self.accelerators_throughput(FPGA),
             'power_total': self.power_total,
             'throughput_total':self.throughput_total,
-            # 'memory_capacity': self.memory_capacity,
-            # 'disk_capacity': self.disk_capacity,
-            'memory': self.memory,
-            'disk': self.disk,
+            'memory_usage': self.memory_usage,
+            'cache_usage': self.cache_usage,
             'running_task_instances': len(self.running_task_instances),
             'finished_task_instances': len(self.finished_task_instances)
         }
