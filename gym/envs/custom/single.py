@@ -1,5 +1,4 @@
 import gym
-from simulation.general import has_parameter
 
 
 class Single_virtual(gym.Env):

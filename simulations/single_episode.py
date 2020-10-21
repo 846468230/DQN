@@ -2,7 +2,7 @@ import simpy
 from simulations.scheduler import Scheduler
 from simulations.broker import Broker
 from simulations.simulation import Simulation
-
+from simulations.machine import Machine
 
 class Episode(object):
     broker_cls = Broker
@@ -24,7 +24,7 @@ class Episode(object):
 
 
 if __name__ == "__main__":
-    from simulations.alogrithm import Algorithm
+    from algorithms.alogrithm import Algorithm
     from simulations.machine import Machine, MachineConfig
     from simulations.accelerator import CPUConfig,MLUConfig,FPGAConfig,GPUConfig
     from simulations.task_generator import task_generator
@@ -55,6 +55,7 @@ if __name__ == "__main__":
     accelerator_configs.append(mlu)
     accelerator_configs.append(fpga)
     accelerator_configs.append(gpu)
+    accelerator_configs.append(cpu)
     mlu = MLUConfig(1, 28, 31)
     fpga = FPGAConfig(1, 46, 43)
     cpu = CPUConfig()

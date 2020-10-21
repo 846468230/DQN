@@ -471,11 +471,11 @@ register(
     entry_point='gym.envs.safety:OffSwitchCartpoleProbEnv',
     tags={'wrapper_config.TimeLimit.max_episode_steps': 200},
 )
-register(
-    id='Basic-v0',
-    entry_point='gym.envs.custom:Basic',
-)
-register(
-    id="Single_virtual-v0",
-    entry_point='gym.envs.custom:Single_virtual',
-)
+# register(
+#     id='Basic-v0',
+#     entry_point='gym.envs.custom:Basic',
+# )
+# register(
+#     id="Single_virtual-v0",
+#     entry_point='gym.envs.custom:Single_virtual',
+# )

@@ -5,6 +5,8 @@ import os
 import numpy as np
 from simulations.csvtools import SaveCSV
 
+np.random.seed(5)
+
 
 def check_it_exits_or_mk(path):
     if not os.path.exists(path):
@@ -21,8 +23,6 @@ def skip_to(fle, line):
 
 
 def task_reader(path):
-    single_metrics = []
-    datas = []
     with open(path, "r", encoding="utf-8") as csvfile:
         spamreader = csv.DictReader(csvfile, )
         single_metrics = list(spamreader)[0]
@@ -30,15 +30,13 @@ def task_reader(path):
         skip_to(csvfile, 2)
         spamreader = csv.DictReader(csvfile)
         datas = list(spamreader)
-    # print(single_metrics)
-    # print(datas)
     return single_metrics, datas
 
 
 def generate_trace(task_type, task_num, task_sumbit_upper, out_put_dir):
     writer = SaveCSV(keyword_list=['id', 'submit_time', 'task_type'], path=out_put_dir)
     trace = []
-    np.random.seed(5)
+
     submit_times = np.random.randint(0, task_sumbit_upper, task_num)
     types = np.random.random_integers(0, len(task_type) - 1, task_num)
     submit_times = np.sort(submit_times)

@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import platform
 
-output_logs = False
+output_logs = True
 path_base = os.getcwd().replace("simulations","")
 os.chmod(path_base, 0o755)
 LOG_BASE = os.path.join(path_base, "simulation_logs", datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
@@ -11,8 +11,10 @@ if output_logs:
         os.makedirs(LOG_BASE)
 """task generator configs"""
 task_types = ["resnet50"]
-accelerators = ["fpga", "mlu","gpu"]
+accelerators = ["fpga", "mlu","gpu","cpu"]
 base = os.getcwd()
+if not base.endswith("simulations"):
+    base = os.path.join(base,"simulations")
 resnet50 = os.path.join(base, "tasks", "resnet50")
 trace_base = os.path.join(base, "tasks", "trace")
 
