@@ -2,6 +2,7 @@ from random import randint
 from simulations.csvtools import SaveCSV
 from simulations.config import output_logs
 import os
+from queue import Queue
 from simulations.config import LOG_BASE
 
 
@@ -244,7 +245,7 @@ class GPU(Accelerator):
     def run_task_instance(self, task_instance):
         self.running_task_instance = task_instance
         if hasattr(task_instance, 'gpu_runtime'):
-            self.runtime = task_instance.mlu_runtime
+            self.runtime = task_instance.gpu_runtime
         else:
             self.runtime = None
         yield self.env.process(self.do_work(self.caculate_runtime()))
@@ -310,7 +311,7 @@ class CPU(Accelerator):
             'speed': self.speed,
             'throughput': self.throughput,
             'power_consumption': self.power_consumption,
-            'card_usage':self.card_usage,
+            'card_usage': self.card_usage,
             'average_frequency': self.average_frequency,
             'temp': self.temp,
             'running_task_instance': self.running_task_instance,

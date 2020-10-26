@@ -3,7 +3,7 @@ from enum import Enum
 from .accelerator import CPUConfig, CPU,MLUConfig,FPGAConfig,GPUConfig,MLU,FPGA,GPU
 from simulations.csvtools import SaveCSV
 from simulations.config import LOG_BASE
-
+from queue import Queue
 class MachineConfig(object):
     idx = 0
 
@@ -29,6 +29,7 @@ class Machine(object):
         self.env = env
         self.accelerators = []
         self.accelerator_configs = machine_config.accelerator_configs
+        self.waiting_instances_queqes = {}
         self.register_accelerator(self.accelerator_configs)
         self.memory_usage = machine_config.memory_usage
         self.cache_usage = machine_config.cache_usage
@@ -51,6 +52,7 @@ class Machine(object):
                 self.accelerators.append(MLU(config,self.env))
             elif isinstance(config,FPGAConfig):
                 self.accelerators.append(FPGA(config,self.env))
+            self.waiting_instances_queqes[self.accelerators[-1].id] = Queue()
 
     def run_task_instance(self, accelerator, task_instance):
         # self.memory_capacity -= task_instance.memory
@@ -65,6 +67,13 @@ class Machine(object):
         for accelerator in self.accelerators:
             if isinstance(accelerator, accelerator_class):
                 sum_power_consumption += accelerator.power_consumption
+        return sum_power_consumption
+
+    def accelerators_original_power_consumption(self, accelerator_class):
+        sum_power_consumption = 0
+        for accelerator in self.accelerators:
+            if isinstance(accelerator, accelerator_class):
+                sum_power_consumption += accelerator.origin_power_consumption
         return sum_power_consumption
 
     def accelerators_throughput(self, accelerator_class):
@@ -108,6 +117,22 @@ class Machine(object):
                     if task_instance.started is False:
                         waiting_task_instances.append(task_instance)
         return waiting_task_instances
+
+    @property
+    def head_task_instance(self):
+        waiting_task_instances = []
+        for task in self.tasks:
+            if task.submit_time <= self.env.now:
+                for task_instance in task.task_instances:
+                    if task_instance.started is False and task_instance.scheduled is False:
+                        waiting_task_instances.append(task_instance)
+        head_task_instance = None
+        for task_instance in waiting_task_instances:
+            if head_task_instance is None :
+                head_task_instance = task_instance
+            if task_instance.task.submit_time < head_task_instance.task.submit_time:
+                head_task_instance = task_instance
+        return head_task_instance
 
     @property
     def running_task_instances(self):

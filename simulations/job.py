@@ -130,6 +130,7 @@ class TaskInstance(object):
 
         self.started = False
         self.finished = False
+        self.scheduled = False
         self.started_timestamp = None
         self.finished_timestamp = None
 

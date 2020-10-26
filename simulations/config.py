@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import platform
 
-output_logs = True
+output_logs = False
 path_base = os.getcwd().replace("simulations","")
 os.chmod(path_base, 0o755)
 LOG_BASE = os.path.join(path_base, "simulation_logs", datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))

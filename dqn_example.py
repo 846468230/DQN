@@ -44,9 +44,9 @@ def build_model1(nb_actions,observation_space):
 
 
 def play_it():
-    ENV_NAME = 'CartPole-v0'
+    #ENV_NAME = 'CartPole-v0'
     #ENV_NAME = 'MountainCar-v0'
-
+    ENV_NAME = 'Single_virtual-v0'
     # Get the environment and extract the number of actions.
     env = make(ENV_NAME)
     env1 = make(ENV_NAME)
@@ -67,7 +67,7 @@ def play_it():
     # Okay, now it's time to learn something! We visualize the training here for show, but this
     # slows down training quite a lot. You can always safely abort the training prematurely using
     # Ctrl + C.
-    dqn.fit(env, nb_steps=50000, visualize=True, verbose=2)
+    dqn.fit(env, nb_steps=50000, visualize=False, verbose=2)
 
     # After training is done, we save the final weights.
     dqn.save_weights(os.path.join('models_weights_logs','dqn_{}_weights.h5f'.format(ENV_NAME+ datetime.now().strftime("%Y%m%d-%H%M%S"))), overwrite=True)
