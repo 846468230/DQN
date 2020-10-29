@@ -36,6 +36,7 @@ class Machine(object):
         self.power = machine_config.power
         self.task_instances = []
         self.tasks = []
+        self.ten_point=0
         self.machine_door = MachineDoor.NULL
         self.csv_saver = SaveCSV(self.state, os.path.join(LOG_BASE, "Machine-" + str(self.id) + ".csv"))
 
@@ -117,6 +118,14 @@ class Machine(object):
                     if task_instance.started is False:
                         waiting_task_instances.append(task_instance)
         return waiting_task_instances
+
+    def next_needed_scheduled_ten_task_instances(self,steps=10):
+        if self.ten_point+steps <= len(self.task_instances):
+            task_instances = self.task_instances[self.ten_point:self.ten_point+steps]
+        else:
+            task_instances = self.task_instances[self.ten_point:]
+        self.ten_point+=steps
+        return task_instances
 
     @property
     def head_task_instance(self):

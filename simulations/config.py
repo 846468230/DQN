@@ -6,11 +6,17 @@ output_logs = False
 path_base = os.getcwd().replace("simulations","")
 os.chmod(path_base, 0o755)
 LOG_BASE = os.path.join(path_base, "simulation_logs", datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+model_base = os.path.join(path_base,"model_logs")
+model_path = os.path.join(model_base,datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+if model_base:
+    if not os.path.exists(model_base):
+        os.makedirs(model_base)
 if output_logs:
     if not os.path.exists(LOG_BASE):
         os.makedirs(LOG_BASE)
 """task generator configs"""
-task_types = ["resnet50"]
+task_types = ["resnet50","vgg16","vgg19"]
+task_nums = 1000
 accelerators = ["fpga", "mlu","gpu","cpu"]
 base = os.getcwd()
 if not base.endswith("simulations"):

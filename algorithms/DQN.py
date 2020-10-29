@@ -1,7 +1,7 @@
 from .alogrithm import Algorithm
 from simulations.accelerator import CPU, GPU, FPGA, MLU
 import numpy as np
-from rl_brain import DeepQNetwork
+from algorithms.rl_brain import DeepQNetwork
 
 
 class DQNAlgorithm(Algorithm):
@@ -12,10 +12,12 @@ class DQNAlgorithm(Algorithm):
         self.mode = "queqe"
         self.RL = RL
         self.ep_r = 0
+        self.train = True
 
     def register_attributes(self,env,machine):
         self.env = env
         self.machine = machine
+        self.ep_r = 0
 
     def generate_reward(self,not_complete_memory):
         yield self.env.timeout(4)
@@ -36,13 +38,14 @@ class DQNAlgorithm(Algorithm):
         self.ep_r += reward
         not_complete_memory.extend([reward,state_])
         self.RL.store_transition(*not_complete_memory)
-        if self.totel_steps > 1000:
+        if self.totel_steps > 1000 and self.train:
             self.RL.learn()
 
     def __call__(self, machine, clock):
         # accelerators = machine.free_accelerators
-        tasks = machine.tasks_which_has_waiting_instance
-        if not tasks:
+        # tasks = machine.tasks_which_has_waiting_instance
+        task = machine.head_task_instance
+        if task is None:
             return None, None
         state = np.array([
             machine.accelerators_original_power_consumption(CPU),
@@ -56,8 +59,7 @@ class DQNAlgorithm(Algorithm):
             machine.power_total,
             machine.throughput_total,
         ])
-        task = machine.head_task_instance
-        action = self.RL.choose_action(state)
+        action = self.RL.choose_action(state,self.train)
         not_complete_memory = [state,action]
         self.env.process(self.generate_reward(not_complete_memory))
         candidate_task = task

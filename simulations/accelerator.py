@@ -142,6 +142,7 @@ class FPGA(Accelerator):
     def state(self):
         return {
             'id': FPGA.name + "-" + str(self.id),
+            'clock':self.env.now,
             'speed': self.speed,
             'throughput': self.throughput,
             'power_consumption': self.power_consumption,
@@ -197,6 +198,7 @@ class MLU(Accelerator):
     def state(self):
         return {
             'id': MLU.name + "-" + str(self.id),
+            'clock': self.env.now,
             'speed': self.speed,
             'throughput': self.throughput,
             'power_consumption': self.power_consumption,
@@ -254,6 +256,7 @@ class GPU(Accelerator):
     def state(self):
         return {
             'id': GPU.name + "-" + str(self.id),
+            'clock': self.env.now,
             'speed': self.speed,
             'throughput': self.throughput,
             'power_consumption': self.power_consumption,
@@ -308,6 +311,7 @@ class CPU(Accelerator):
     def state(self):
         return {
             'id': CPU.name + "-" + str(self.id),
+            'clock': self.env.now,
             'speed': self.speed,
             'throughput': self.throughput,
             'power_consumption': self.power_consumption,

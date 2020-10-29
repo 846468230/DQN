@@ -58,6 +58,10 @@ def parse_trace_to_task_instance(item, config_data):
     task_instance_configs = []
     if item["task_type"] == "resnet50":
         config = config_data["resnet50"]
+    elif item["task_type"] == "vgg16":
+        config = config_data["vgg16"]
+    elif item["task_type"] == "vgg19":
+        config = config_data["vgg19"]
     else:
         config = {}  # if task more than one type add it here
     instance_config_list = []
@@ -153,7 +157,7 @@ def config_generator(task_types, accelerators):
 
 
 if __name__ == "__main__":
-    task_types = ["resnet50"]
+    task_types = ["resnet50","vgg16","vgg19"]
     """ trace generate """
     task_nums = 1000
     task_submit_upper = 10000
@@ -161,7 +165,7 @@ if __name__ == "__main__":
     if generate_trace_now:  # generate trace files
         check_it_exits_or_mk(trace_base)
         generate_trace(task_types, task_nums, task_submit_upper,
-                       os.path.join(trace_base, "_".join(task_types) + ".csv"))
+                       os.path.join(trace_base, "_".join(task_types)+"_"+str(task_nums) + ".csv"))
 
     # task_resnet50 = {}
     # for item in accelerator:
@@ -172,5 +176,5 @@ if __name__ == "__main__":
     # print(task_resnet50["fpga"]["datas"][1]["totol_power"])
     accelerators = ["fpga", "mlu"]
     # config_generator(task_types, accelerators)
-    tasks = task_generator(os.path.join(trace_base, "_".join(task_types) + ".csv"), task_types, accelerators)
+    tasks = task_generator(os.path.join(trace_base, "_".join(task_types) +"_"+str(task_nums) + ".csv"), task_types, accelerators)
     print(tasks)
