@@ -15,7 +15,7 @@ if output_logs:
     if not os.path.exists(LOG_BASE):
         os.makedirs(LOG_BASE)
 """task generator configs"""
-task_types = ["resnet50","vgg16","vgg19"]
+task_types = ["resnet50","vgg16","vgg19","inception_v1"]
 task_nums = 1000
 accelerators = ["fpga", "mlu","gpu","cpu"]
 base = os.getcwd()

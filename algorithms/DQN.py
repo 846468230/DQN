@@ -20,20 +20,15 @@ class DQNAlgorithm(Algorithm):
         self.ep_r = 0
 
     def generate_reward(self,not_complete_memory):
-        yield self.env.timeout(4)
+        yield self.env.timeout(10)
         #the length of the observation is 10
-        state_ = np.array([
-            self.machine.accelerators_original_power_consumption(CPU),
-            self.machine.accelerators_throughput(CPU),
-            self.machine.accelerators_original_power_consumption(GPU),
-            self.machine.accelerators_throughput(GPU),
-            self.machine.accelerators_original_power_consumption(MLU),
-            self.machine.accelerators_throughput(MLU),
-            self.machine.accelerators_original_power_consumption(FPGA),
-            self.machine.accelerators_throughput(FPGA),
-            self.machine.power_total,
-            self.machine.throughput_total,
-        ])
+        state_ = []
+        for accelerator in self.machine.accelerators:
+            state_.append(accelerator.power_consumption)
+            state_.append(accelerator.throughput)
+        state_.append(self.machine.power_total)
+        state_.append(self.machine.throughput_total)
+        state_ = np.array(state_)
         reward = (-(self.machine.power_total - not_complete_memory[0][-2]) + self.machine.throughput_total - not_complete_memory[0][-1]) * 0.1
         self.ep_r += reward
         not_complete_memory.extend([reward,state_])
@@ -42,23 +37,20 @@ class DQNAlgorithm(Algorithm):
             self.RL.learn()
 
     def __call__(self, machine, clock):
-        # accelerators = machine.free_accelerators
+        accelerators = machine.free_accelerators
+        if len(accelerators) == 0 :
+            return None, None
         # tasks = machine.tasks_which_has_waiting_instance
         task = machine.head_task_instance
         if task is None:
             return None, None
-        state = np.array([
-            machine.accelerators_original_power_consumption(CPU),
-            machine.accelerators_throughput(CPU),
-            machine.accelerators_original_power_consumption(GPU),
-            machine.accelerators_throughput(GPU),
-            machine.accelerators_original_power_consumption(MLU),
-            machine.accelerators_throughput(MLU),
-            machine.accelerators_original_power_consumption(FPGA),
-            machine.accelerators_throughput(FPGA),
-            machine.power_total,
-            machine.throughput_total,
-        ])
+        state = []
+        for accelerator in machine.accelerators:
+            state.append(accelerator.power_consumption)
+            state.append(accelerator.throughput)
+        state.append(machine.power_total)
+        state.append(machine.throughput_total)
+        state = np.array(state)
         action = self.RL.choose_action(state,self.train)
         not_complete_memory = [state,action]
         self.env.process(self.generate_reward(not_complete_memory))

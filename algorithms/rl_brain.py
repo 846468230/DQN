@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
+import os
 from datetime import datetime
 from simulations.config import model_path
 np.random.seed(1)
@@ -42,14 +43,16 @@ class DeepQNetwork:
         self.model = self._build_net()
         self.target_model = self._build_net()
         self.cost_his = []
-        logdir = "logs\\fit\\" + datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+        #logdir = "logs\\fit\\" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        #self.tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
     def _build_net(self):
         w_initializer, b_initializer = keras.initializers.RandomUniform(-0.3, 0.3), keras.initializers.Constant(0.1)
         model = keras.Sequential()
         model.add(keras.layers.InputLayer(input_shape=(self.n_features,)))
-        model.add(keras.layers.Dense(100, activation="relu", kernel_initializer=w_initializer,
+        model.add(keras.layers.Dense(256, activation="relu", kernel_initializer=w_initializer,
+                                     bias_initializer=b_initializer))
+        model.add(keras.layers.Dense(128, activation="relu", kernel_initializer=w_initializer,
                                      bias_initializer=b_initializer))
         model.add(keras.layers.Dense(self.n_actions, activation="linear", kernel_initializer=w_initializer,
                                      bias_initializer=b_initializer))
@@ -111,10 +114,12 @@ class DeepQNetwork:
         self.learn_step_counter += 1
 
     def save_model(self, path):
-        self.model.save(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.model.save_weights(os.path.join(path,"weights"))
 
     def load_model(self, path):
-        self.model = keras.models.load_model(path)
+        self.model.load_weights(os.path.join(path,"weights"))
 
     def plot_cost(self):
         import matplotlib.pyplot as plt

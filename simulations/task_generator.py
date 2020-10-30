@@ -62,6 +62,8 @@ def parse_trace_to_task_instance(item, config_data):
         config = config_data["vgg16"]
     elif item["task_type"] == "vgg19":
         config = config_data["vgg19"]
+    elif item["task_type"] == "inception_v1":
+        config = config_data["inception_v1"]
     else:
         config = {}  # if task more than one type add it here
     instance_config_list = []
@@ -157,7 +159,7 @@ def config_generator(task_types, accelerators):
 
 
 if __name__ == "__main__":
-    task_types = ["resnet50","vgg16","vgg19"]
+    task_types = ["resnet50","vgg16","vgg19","inception_v1"]
     """ trace generate """
     task_nums = 1000
     task_submit_upper = 10000
