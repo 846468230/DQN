@@ -26,7 +26,7 @@ class Scheduler(object):
                 if accelerator and task_instance:
                     self.machine.waiting_instances_queqes[accelerator.id].put(task_instance)
                     task_instance.scheduled = True
-                    continue
+                    break
                 else:
                     break
             if accelerator is None or task_instance is None:

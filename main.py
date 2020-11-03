@@ -44,18 +44,18 @@ if __name__ == "__main__":
     # episode.run()
     from simulations.config import output_logs
     # output_logs = False
-    dqn_algorithms = DQNAlgorithm(RL)
-    for i_episode in range(100):
-        episode = Episode(machine_config, tasks, dqn_algorithms, None)
-        dqn_algorithms.register_attributes(episode.env,episode.simulation.machine)
-        episode.run()
-        print('episode: ', i_episode, 'ep_r: ', round(dqn_algorithms.ep_r, 2), ' epsilon: ', round(RL.epsilon, 2))
-    RL.plot_cost()
-    RL.save_model(model_path)
-    # RL.load_model("C:\\Users\\dao\\PycharmProjects\\DQN\\model_logs\\2020-10-30-11-27-20")
     # dqn_algorithms = DQNAlgorithm(RL)
-    # dqn_algorithms.train = False
-    # episode = Episode(machine_config, tasks, dqn_algorithms, None)
-    # dqn_algorithms.register_attributes(episode.env, episode.simulation.machine)
-    # episode.run()
+    # for i_episode in range(20):
+    #     episode = Episode(machine_config, tasks, dqn_algorithms, None)
+    #     dqn_algorithms.register_attributes(episode.env,episode.simulation.machine)
+    #     episode.run()
+    #     print('episode: ', i_episode, 'ep_r: ', round(dqn_algorithms.ep_r, 2), ' epsilon: ', round(RL.epsilon, 2))
+    # RL.plot_cost()
+    # RL.save_model(model_path)
+    RL.load_model("C:\\Users\\dao\\PycharmProjects\\DQN\\model_logs\\2020-11-02-09-24-50")
+    dqn_algorithms = DQNAlgorithm(RL)
+    dqn_algorithms.train = False
+    episode = Episode(machine_config, tasks, dqn_algorithms, None)
+    dqn_algorithms.register_attributes(episode.env, episode.simulation.machine)
+    episode.run()
 
