@@ -29,11 +29,11 @@ class DQNAlgorithm(Algorithm):
         state_.append(self.machine.power_total)
         state_.append(self.machine.throughput_total)
         state_ = np.array(state_)
-        reward = (-(self.machine.power_total - not_complete_memory[0][-2]) + self.machine.throughput_total - not_complete_memory[0][-1]) * 0.1
+        reward = (-(self.machine.power_total - not_complete_memory[0][-2])/not_complete_memory[0][-2]/100*0.2 + (self.machine.throughput_total - not_complete_memory[0][-1])/100*0.8)
         self.ep_r += reward
         not_complete_memory.extend([reward,state_])
         self.RL.store_transition(*not_complete_memory)
-        if self.totel_steps > 1000 and self.train:
+        if self.totel_steps > 100 and self.train:
             self.RL.learn()
 
     def __call__(self, machine, clock):

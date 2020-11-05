@@ -151,7 +151,7 @@ def play_it():
         ep_r = 0
         while True:
             env.render()
-            action = RL.choose_action(observation)
+            action = RL.choose_action(observation,train=True)
             observation_, reward, done, info = env.step(action)
 
             # the smaller theta and closer to center the better
