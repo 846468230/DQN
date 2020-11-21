@@ -53,7 +53,7 @@ class Machine(object):
                 self.accelerators.append(MLU(config,self.env))
             elif isinstance(config,FPGAConfig):
                 self.accelerators.append(FPGA(config,self.env))
-            self.waiting_instances_queqes[self.accelerators[-1].id] = Queue()
+            self.waiting_instances_queqes[self.accelerators[-1].name+str(self.accelerators[-1].id)] = Queue()
 
     def run_task_instance(self, accelerator, task_instance):
         # self.memory_capacity -= task_instance.memory

@@ -14,7 +14,6 @@ class Scheduler(object):
         self.destroyed = False
         self.valid_pairs = {}
 
-
     def attach(self, simulation):
         self.simulation = simulation
         self.machine = simulation.machine
@@ -22,9 +21,9 @@ class Scheduler(object):
     def make_decision(self):
         while True:
             accelerator, task_instance = self.algorithm(self.machine, self.env.now)
-            if self.mode is "queqe":
+            if self.mode == "queqe":
                 if accelerator and task_instance:
-                    self.machine.waiting_instances_queqes[accelerator.id].put(task_instance)
+                    self.machine.waiting_instances_queqes[accelerator.name + str(accelerator.id)].put(task_instance)
                     task_instance.scheduled = True
                     break
                 else:
@@ -36,13 +35,14 @@ class Scheduler(object):
                 task_instance.started = True
                 self.env.process(self.machine.run_task_instance(accelerator, task_instance))
 
-
     def run(self):
         while not self.simulation.finished:
-            if self.mode is "queqe":
+            if self.mode == "queqe":
                 for accelerator in self.machine.accelerators:
-                    if accelerator.running_task_instance is None and not self.machine.waiting_instances_queqes[accelerator.id].empty():
-                        task_instance = self.machine.waiting_instances_queqes[accelerator.id].get()
+                    if accelerator.running_task_instance is None and not self.machine.waiting_instances_queqes[
+                        accelerator.name + str(accelerator.id)].empty():
+                        task_instance = self.machine.waiting_instances_queqes[
+                            accelerator.name + str(accelerator.id)].get()
                         accelerator.running_task_instance = task_instance
                         task_instance.started = True
                         self.env.process(self.machine.run_task_instance(accelerator, task_instance))
